@@ -156,7 +156,7 @@ function ConfigurationMain() {
                     colorScheme="red"
                     onClick={() => {
                       setDeleteConfig(config);
-                      deleteModal.onClose();
+                      deleteModal.onOpen();
                     }}
                   >
                     Delete

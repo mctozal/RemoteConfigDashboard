@@ -35,19 +35,14 @@ const broadcast = (data: any) => {
   });
 };
 
-// // Check for overlapping configs
-// const checkOverlap = async (newConfig: any) => {
-//   const { name,  } = newConfig;
-//   const query: any = { name, status: "active" };
+// Check for overlapping configs
+const checkOverlap = async (newConfig: any) => {
+  const { name } = newConfig;
+  const query: any = { name, status: "active" };
 
-//   if (version) query["version"] = filters.version;
-//   if (buildNumber) query["buildNumber"] = filters.buildNumber;
-//   if (platform) query["platform"] = filters.platform;
-//   if (country) query["country"] = filters.country;
-
-//   const existing = await Config.findOne(query);
-//   return !!existing;
-// };
+  const existing = await Config.findOne(query);
+  return !!existing;
+};
 
 // Get all active configs
 app.get("/api/configs", cors(corsOptions), async (req, res): Promise<any> => {
@@ -67,11 +62,11 @@ app.get("/api/configs", cors(corsOptions), async (req, res): Promise<any> => {
 // Create a config
 app.post("/api/configs", async (req, res): Promise<any> => {
   try {
-    // if (await checkOverlap(req.body)) {
-    //   return res
-    //     .status(400)
-    //     .json({ error: "Config overlaps with an existing active config" });
-    // }
+    if (await checkOverlap(req.body)) {
+      return res
+        .status(400)
+        .json({ error: "Config overlaps with an existing active config" });
+    }
     const config = new Config({ ...req.body, updatedAt: new Date() });
     await config.save();
     broadcast({ type: "create", data: config });
@@ -88,11 +83,11 @@ app.put("/api/configs/:id", async (req, res): Promise<any> => {
     if (!original || original.status !== "active")
       return res.status(404).json({ error: "Config not found" });
 
-    // if (await checkOverlap({ ...req.body, name: original.name })) {
-    //   return res.status(400).json({
-    //     error: "Updated config overlaps with an existing active config",
-    //   });
-    // }
+    if (await checkOverlap({ ...req.body, name: original.name })) {
+      return res.status(400).json({
+        error: "Updated config overlaps with an existing active config",
+      });
+    }
 
     original.status = "superseded";
     original.updatedAt = new Date();

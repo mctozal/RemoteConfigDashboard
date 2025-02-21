@@ -14,6 +14,7 @@ export const useGetConfigs = (
 ) => {
   return useQuery<Config[], Error>({
     queryKey: ["configs"],
+    refetchInterval: 5000,
     queryFn: () => getConfigsApi(sortBy, order),
   });
 };
