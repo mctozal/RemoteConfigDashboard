@@ -18,6 +18,12 @@ Database: MongoDB
    - Frontend: `http://localhost:5173`
    - Backend API: `http://localhost:5000/api/configs`
 
+OR
+
+1.  Configure .env mongo db connection
+2.  **Run Server**: go to backend folder with terminal and exec 'nodemon src/index.ts'
+3.  **Run Frontend**: go to frontend folder with terminal and exec 'npm run dev'
+
 ## Features
 
 - Create, edit, delete config values with immutability (superseded/deleted flags).

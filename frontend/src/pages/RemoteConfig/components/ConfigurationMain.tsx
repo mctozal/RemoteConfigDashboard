@@ -11,15 +11,18 @@ import {
   useDisclosure,
   Flex,
   Spinner,
+  Input,
 } from "@chakra-ui/react";
+
 import { useState } from "react";
+
 import {
   useGetConfigs,
   useCreateConfig,
   useUpdateConfig,
   useDeleteConfig,
 } from "../hooks/remoteConfigMutation";
-// Adjust path to your hooks file
+
 import CreateModal from "./CreateModal";
 import EditModal from "./EditModal";
 import DeleteModal from "./DeleteModal";
@@ -27,6 +30,7 @@ import { Config } from "../../../interfaces/IConfig";
 
 function ConfigurationMain() {
   const [sortBy, setSortBy] = useState<string>("name");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const { data: configs, isLoading, error } = useGetConfigs(sortBy, sortOrder);
   const { mutate: createConfig } = useCreateConfig();
@@ -44,6 +48,12 @@ function ConfigurationMain() {
     setSortBy(field);
     setSortOrder(newOrder);
   };
+
+  const filteredConfigs = configs?.filter(
+    (config: Config) =>
+      config.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      config.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleDuplicate = (config: Config) => {
     const newConfig = {
@@ -93,6 +103,13 @@ function ConfigurationMain() {
         <Button colorScheme="teal" onClick={createModal.onOpen} mb={4}>
           Add Config
         </Button>
+        <Input
+          placeholder="Search by name or description..."
+          mb={4}
+          value={searchQuery}
+          onChange={(e: any) => setSearchQuery(e.target.value)}
+        />
+
         <Table variant="simple">
           <Thead>
             <Tr>
@@ -131,7 +148,7 @@ function ConfigurationMain() {
             </Tr>
           </Thead>
           <Tbody>
-            {configs?.map((config: any) => (
+            {filteredConfigs?.map((config: any) => (
               <Tr key={config._id}>
                 <Td>{config.name}</Td>
                 <Td>{config.description}</Td>

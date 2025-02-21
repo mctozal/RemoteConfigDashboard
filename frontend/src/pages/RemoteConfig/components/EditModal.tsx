@@ -24,6 +24,10 @@ const configSchema = z.object({
   description: z.string().optional(),
   value: z.union([z.string(), z.number(), z.boolean()]),
   type: z.enum(["string", "integer", "float", "boolean"]),
+  version: z.string().optional(),
+  buildNumber: z.string().optional(),
+  platform: z.string().optional(),
+  country: z.string().optional(),
 });
 
 type ConfigForm = z.infer<typeof configSchema>;
@@ -42,6 +46,10 @@ const EditModal = ({ isOpen, onClose, config, onUpdate }: EditModalProps) => {
     description: config.description || "",
     value: config.value,
     type: config.type,
+    version: config.version || "",
+    buildNumber: config.buildNumber || "",
+    platform: config.platform || "",
+    country: config.country || "",
   });
   const [errors, setErrors] = useState<any>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -106,6 +114,36 @@ const EditModal = ({ isOpen, onClose, config, onUpdate }: EditModalProps) => {
               <option value="float">Float</option>
               <option value="boolean">Boolean</option>
             </Select>
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Version</FormLabel>
+            <Textarea
+              value={form.version}
+              onChange={(e) => setForm({ ...form, version: e.target.value })}
+            />
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Build Number</FormLabel>
+            <Textarea
+              value={form.buildNumber}
+              onChange={(e) =>
+                setForm({ ...form, buildNumber: e.target.value })
+              }
+            />
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Platform</FormLabel>
+            <Textarea
+              value={form.platform}
+              onChange={(e) => setForm({ ...form, platform: e.target.value })}
+            />
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Country</FormLabel>
+            <Textarea
+              value={form.country}
+              onChange={(e) => setForm({ ...form, country: e.target.value })}
+            />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Value</FormLabel>
