@@ -13,15 +13,20 @@ const app = express();
 const corsOptions = {
   origin: "http://localhost:5173",
   methods: "GET,POST,PUT,DELETE,OPTIONS",
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Access-Control-Allow-Origin",
+    "Access-Control-Allow-Headers",
+  ],
+  credentials: true,
 };
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
 
 app.use(express.json());
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server, perMessageDeflate: false });
 
 // Broadcast to all clients
 const broadcast = (data: any) => {
@@ -30,19 +35,19 @@ const broadcast = (data: any) => {
   });
 };
 
-// Check for overlapping configs
-const checkOverlap = async (newConfig: any) => {
-  const { name, filters } = newConfig;
-  const query: any = { name, status: "active" };
+// // Check for overlapping configs
+// const checkOverlap = async (newConfig: any) => {
+//   const { name,  } = newConfig;
+//   const query: any = { name, status: "active" };
 
-  if (filters.version) query["filters.version"] = filters.version;
-  if (filters.buildNumber) query["filters.buildNumber"] = filters.buildNumber;
-  if (filters.platform) query["filters.platform"] = filters.platform;
-  if (filters.country) query["filters.country"] = filters.country;
+//   if (version) query["version"] = filters.version;
+//   if (buildNumber) query["buildNumber"] = filters.buildNumber;
+//   if (platform) query["platform"] = filters.platform;
+//   if (country) query["country"] = filters.country;
 
-  const existing = await Config.findOne(query);
-  return !!existing;
-};
+//   const existing = await Config.findOne(query);
+//   return !!existing;
+// };
 
 // Get all active configs
 app.get("/api/configs", cors(corsOptions), async (req, res): Promise<any> => {
@@ -62,11 +67,11 @@ app.get("/api/configs", cors(corsOptions), async (req, res): Promise<any> => {
 // Create a config
 app.post("/api/configs", async (req, res): Promise<any> => {
   try {
-    if (await checkOverlap(req.body)) {
-      return res
-        .status(400)
-        .json({ error: "Config overlaps with an existing active config" });
-    }
+    // if (await checkOverlap(req.body)) {
+    //   return res
+    //     .status(400)
+    //     .json({ error: "Config overlaps with an existing active config" });
+    // }
     const config = new Config({ ...req.body, updatedAt: new Date() });
     await config.save();
     broadcast({ type: "create", data: config });
@@ -83,11 +88,11 @@ app.put("/api/configs/:id", async (req, res): Promise<any> => {
     if (!original || original.status !== "active")
       return res.status(404).json({ error: "Config not found" });
 
-    if (await checkOverlap({ ...req.body, name: original.name })) {
-      return res.status(400).json({
-        error: "Updated config overlaps with an existing active config",
-      });
-    }
+    // if (await checkOverlap({ ...req.body, name: original.name })) {
+    //   return res.status(400).json({
+    //     error: "Updated config overlaps with an existing active config",
+    //   });
+    // }
 
     original.status = "superseded";
     original.updatedAt = new Date();

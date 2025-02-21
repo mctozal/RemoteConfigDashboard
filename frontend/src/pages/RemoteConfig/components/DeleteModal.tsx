@@ -10,20 +10,21 @@ import {
 } from "@chakra-ui/react";
 import { Config } from "../../../interfaces/IConfig";
 
+interface DeleteModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  config: Config;
+  onDelete: (configId: string) => void; // Callback from parent
+}
+
 const DeleteModal = ({
   isOpen,
   onClose,
   config,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  config: Config;
-}) => {
-  const handleDelete = async () => {
-    await fetch(`http://localhost:5000/api/configs/${config._id}`, {
-      method: "DELETE",
-    });
-    onClose();
+  onDelete,
+}: DeleteModalProps) => {
+  const handleDelete = () => {
+    onDelete(config._id); // Use parent's mutation hook
   };
 
   return (
@@ -41,7 +42,7 @@ const DeleteModal = ({
           <Button colorScheme="red" onClick={handleDelete}>
             Delete
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} ml={2}>
             Cancel
           </Button>
         </ModalFooter>

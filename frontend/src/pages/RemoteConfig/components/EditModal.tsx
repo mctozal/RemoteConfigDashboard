@@ -11,76 +11,53 @@ import {
   Input,
   Select,
   Textarea,
+  Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { z } from "zod";
 import { Config } from "../../../interfaces/IConfig";
 
+// Zod schema matching backend Config
 const configSchema = z.object({
+  _id: z.string(), // Required for updates
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   value: z.union([z.string(), z.number(), z.boolean()]),
   type: z.enum(["string", "integer", "float", "boolean"]),
-  filters: z.object({
-    version: z.object({ value: z.string(), operation: z.string() }).optional(),
-    buildNumber: z
-      .object({ value: z.number(), operation: z.string() })
-      .optional(),
-    platform: z.enum(["All", "ios", "Android"]),
-    country: z
-      .object({
-        operation: z.enum(["Include", "Exclude"]),
-        values: z.array(z.string()),
-      })
-      .optional(),
-  }),
 });
 
 type ConfigForm = z.infer<typeof configSchema>;
 
-const EditModal = ({
-  isOpen,
-  onClose,
-  config,
-}: {
+interface EditModalProps {
   isOpen: boolean;
   onClose: () => void;
   config: Config;
-}) => {
+  onUpdate: (updatedConfig: any) => void; // Callback from parent
+}
+
+const EditModal = ({ isOpen, onClose, config, onUpdate }: EditModalProps) => {
   const [form, setForm] = useState<ConfigForm>({
+    _id: config._id,
     name: config.name,
     description: config.description || "",
     value: config.value,
     type: config.type,
-    filters: config.filters,
   });
   const [errors, setErrors] = useState<any>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     try {
       const validated = configSchema.parse(form);
-      const res = await fetch(
-        `http://localhost:5000/api/configs/${config._id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(validated),
-        }
-      );
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(
-          errorText.includes("overlap")
-            ? "Config overlaps with an existing active config"
-            : errorText
-        );
-      }
-
-      onClose();
+      onUpdate(validated); // Use parent's mutation hook
+      setErrors({});
+      setSubmitError(null);
     } catch (error) {
-      if (error instanceof z.ZodError) setErrors(error.format());
-      else console.error(error);
+      if (error instanceof z.ZodError) {
+        setErrors(error.format());
+      } else {
+        setSubmitError((error as Error).message || "Failed to update config");
+      }
     }
   };
 
@@ -90,13 +67,15 @@ const EditModal = ({
       <ModalContent>
         <ModalHeader>Edit Config</ModalHeader>
         <ModalBody>
-          <FormControl mb={4}>
+          <FormControl mb={4} isInvalid={!!errors.name}>
             <FormLabel>Name</FormLabel>
             <Input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
-            {errors.name && <span>{errors.name._errors[0]}</span>}
+            {errors.name && (
+              <Text color="red.500">{errors.name._errors[0]}</Text>
+            )}
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Description</FormLabel>
@@ -112,7 +91,14 @@ const EditModal = ({
             <Select
               value={form.type}
               onChange={(e) =>
-                setForm({ ...form, type: e.target.value as any })
+                setForm({
+                  ...form,
+                  type: e.target.value as
+                    | "string"
+                    | "integer"
+                    | "float"
+                    | "boolean",
+                })
               }
             >
               <option value="string">String</option>
@@ -124,32 +110,27 @@ const EditModal = ({
           <FormControl mb={4}>
             <FormLabel>Value</FormLabel>
             <Input
-              value={form.value.toString()}
-              onChange={(e) => setForm({ ...form, value: e.target.value })}
+              value={String(form.value)}
+              onChange={(e) => {
+                const value =
+                  form.type === "integer"
+                    ? parseInt(e.target.value) || 0
+                    : form.type === "float"
+                    ? parseFloat(e.target.value) || 0
+                    : form.type === "boolean"
+                    ? e.target.value === "true"
+                    : e.target.value;
+                setForm({ ...form, value });
+              }}
             />
           </FormControl>
-          <FormControl mb={4}>
-            <FormLabel>Platform</FormLabel>
-            <Select
-              value={form.filters.platform}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  filters: { ...form.filters, platform: e.target.value as any },
-                })
-              }
-            >
-              <option value="All">All</option>
-              <option value="ios">iOS</option>
-              <option value="Android">Android</option>
-            </Select>
-          </FormControl>
+          {submitError && <Text color="red.500">{submitError}</Text>}
         </ModalBody>
         <ModalFooter>
           <Button colorScheme="teal" onClick={handleSubmit}>
             Save
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} ml={2}>
             Cancel
           </Button>
         </ModalFooter>

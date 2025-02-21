@@ -11,79 +11,55 @@ import {
   Input,
   Select,
   Textarea,
+  Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { z } from "zod";
 
+// Zod schema matching backend Config
 const configSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   value: z.union([z.string(), z.number(), z.boolean()]),
   type: z.enum(["string", "integer", "float", "boolean"]),
-  filters: z.object({
-    version: z.object({ value: z.string(), operation: z.string() }).optional(),
-    buildNumber: z
-      .object({ value: z.number(), operation: z.string() })
-      .optional(),
-    platform: z.enum(["All", "ios", "Android"]),
-    country: z
-      .object({
-        operation: z.enum(["Include", "Exclude"]),
-        values: z.array(z.string()),
-      })
-      .optional(),
-  }),
 });
 
 type ConfigForm = z.infer<typeof configSchema>;
 
-const CreateModal = ({
-  isOpen,
-  onClose,
-}: {
+interface CreateModalProps {
   isOpen: boolean;
   onClose: () => void;
-}) => {
+  onCreate: (newConfig: any) => void; // Callback from parent
+}
+
+const CreateModal = ({ isOpen, onClose, onCreate }: CreateModalProps) => {
   const [form, setForm] = useState<ConfigForm>({
     name: "",
     description: "",
     value: "",
     type: "string",
-    filters: { platform: "All" },
   });
   const [errors, setErrors] = useState<any>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     try {
       const validated = configSchema.parse(form);
-      const res = await fetch("http://localhost:5000/api/configs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Credentials": "true",
-        },
-        body: JSON.stringify(validated),
-      });
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error(
-          `Fetch failed with status ${res.status}: ${
-            errorText || "No response body"
-          }`
-        );
-        throw new Error(errorText || `Status ${res.status}`);
-      }
-      onClose();
+      onCreate(validated); // Use parent's mutation hook
       setForm({
         name: "",
         description: "",
         value: "",
         type: "string",
-        filters: { platform: "All" },
       });
+      setErrors({});
+      setSubmitError(null);
     } catch (error) {
-      if (error instanceof z.ZodError) setErrors(error.format());
-      else console.error(error);
+      if (error instanceof z.ZodError) {
+        setErrors(error.format());
+      } else {
+        setSubmitError((error as Error).message || "Failed to create config");
+      }
     }
   };
 
@@ -93,13 +69,15 @@ const CreateModal = ({
       <ModalContent>
         <ModalHeader>Create Config</ModalHeader>
         <ModalBody>
-          <FormControl mb={4}>
+          <FormControl mb={4} isInvalid={!!errors.name}>
             <FormLabel>Name</FormLabel>
             <Input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
-            {errors.name && <span>{errors.name._errors[0]}</span>}
+            {errors.name && (
+              <Text color="red.500">{errors.name._errors[0]}</Text>
+            )}
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Description</FormLabel>
@@ -115,7 +93,14 @@ const CreateModal = ({
             <Select
               value={form.type}
               onChange={(e) =>
-                setForm({ ...form, type: e.target.value as any })
+                setForm({
+                  ...form,
+                  type: e.target.value as
+                    | "string"
+                    | "integer"
+                    | "float"
+                    | "boolean",
+                })
               }
             >
               <option value="string">String</option>
@@ -127,32 +112,27 @@ const CreateModal = ({
           <FormControl mb={4}>
             <FormLabel>Value</FormLabel>
             <Input
-              value={form.value.toString()}
-              onChange={(e) => setForm({ ...form, value: e.target.value })}
+              value={String(form.value)}
+              onChange={(e) => {
+                const value =
+                  form.type === "integer"
+                    ? parseInt(e.target.value) || 0
+                    : form.type === "float"
+                    ? parseFloat(e.target.value) || 0
+                    : form.type === "boolean"
+                    ? e.target.value === "true"
+                    : e.target.value;
+                setForm({ ...form, value });
+              }}
             />
           </FormControl>
-          <FormControl mb={4}>
-            <FormLabel>Platform</FormLabel>
-            <Select
-              value={form.filters.platform}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  filters: { ...form.filters, platform: e.target.value as any },
-                })
-              }
-            >
-              <option value="All">All</option>
-              <option value="ios">iOS</option>
-              <option value="Android">Android</option>
-            </Select>
-          </FormControl>
+          {submitError && <Text color="red.500">{submitError}</Text>}
         </ModalBody>
         <ModalFooter>
           <Button colorScheme="teal" onClick={handleSubmit}>
             Save
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} ml={2}>
             Cancel
           </Button>
         </ModalFooter>

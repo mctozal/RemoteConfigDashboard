@@ -1,41 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 
-const FilterSchema = new Schema({
-  version: {
-    value: String,
-    operation: {
-      type: String,
-      enum: [
-        "Equal",
-        "NotEqual",
-        "GreaterThan",
-        "LessThan",
-        "GreaterThanOrEqual",
-        "LessThanOrEqual",
-      ],
-    },
-  },
-  buildNumber: {
-    value: Number,
-    operation: {
-      type: String,
-      enum: [
-        "Equal",
-        "NotEqual",
-        "GreaterThan",
-        "LessThan",
-        "GreaterThanOrEqual",
-        "LessThanOrEqual",
-      ],
-    },
-  },
-  platform: { type: String, enum: ["All", "ios", "Android"], default: "All" },
-  country: {
-    operation: { type: String, enum: ["Include", "Exclude"] },
-    values: [String],
-  },
-});
-
 const ConfigSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String },
@@ -45,7 +9,6 @@ const ConfigSchema = new Schema({
     enum: ["string", "integer", "float", "boolean"],
     required: true,
   },
-  filters: FilterSchema,
   status: {
     type: String,
     enum: ["active", "deleted", "superseded"],
@@ -53,7 +16,7 @@ const ConfigSchema = new Schema({
   },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date },
-  supersededBy: { type: Schema.Types.ObjectId, ref: "Config" }, // Reference to the new version
+  supersededBy: { type: Schema.Types.ObjectId, ref: "Config" },
 });
 
 export default mongoose.model("Config", ConfigSchema);
