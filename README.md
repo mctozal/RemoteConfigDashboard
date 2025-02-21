@@ -2,6 +2,8 @@
 
 A full-stack application for managing remote configuration values with real-time updates.
 
+<a href="https://freeimage.host/i/39s5dAB"><img src="https://iili.io/39s5dAB.md.png" alt="39s5dAB.md.png" ></a>
+
 Frontend: vite, react, chakra.ui, zod, zustand
 Backend: express,node
 Database: MongoDB
