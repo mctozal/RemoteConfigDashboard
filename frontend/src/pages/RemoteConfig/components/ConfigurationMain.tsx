@@ -107,6 +107,22 @@ function ConfigurationMain() {
               <Th onClick={() => handleSort("type")} cursor="pointer">
                 Type {sortBy === "type" && (sortOrder === "asc" ? "↑" : "↓")}
               </Th>
+              <Th onClick={() => handleSort("version")} cursor="pointer">
+                Version{" "}
+                {sortBy === "version" && (sortOrder === "asc" ? "↑" : "↓")}
+              </Th>
+              <Th onClick={() => handleSort("buildNumber")} cursor="pointer">
+                Build Number{" "}
+                {sortBy === "buildNumber" && (sortOrder === "asc" ? "↑" : "↓")}
+              </Th>
+              <Th onClick={() => handleSort("platform")} cursor="pointer">
+                Platform{" "}
+                {sortBy === "platform" && (sortOrder === "asc" ? "↑" : "↓")}
+              </Th>
+              <Th onClick={() => handleSort("country")} cursor="pointer">
+                Country{" "}
+                {sortBy === "country" && (sortOrder === "asc" ? "↑" : "↓")}
+              </Th>
               <Th onClick={() => handleSort("updatedAt")} cursor="pointer">
                 Last Updated{" "}
                 {sortBy === "updatedAt" && (sortOrder === "asc" ? "↑" : "↓")}
@@ -121,6 +137,12 @@ function ConfigurationMain() {
                 <Td>{config.description}</Td>
                 <Td>{String(config.value)}</Td>
                 <Td>{config.type}</Td>
+
+                <Td>{config.version}</Td>
+                <Td>{config.buildNumber}</Td>
+                <Td>{config.platform}</Td>
+                <Td>{config.country}</Td>
+
                 <Td>
                   {config.updatedAt
                     ? new Date(config.updatedAt).toLocaleString()

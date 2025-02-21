@@ -9,6 +9,10 @@ const ConfigSchema = new Schema({
     enum: ["string", "integer", "float", "boolean"],
     required: true,
   },
+  version: { type: String },
+  platform: { type: String },
+  buildNumber: { type: String },
+  country: { type: String },
   status: {
     type: String,
     enum: ["active", "deleted", "superseded"],

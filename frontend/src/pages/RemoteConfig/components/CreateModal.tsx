@@ -20,6 +20,10 @@ import { z } from "zod";
 const configSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
+  version: z.string().optional(),
+  buildNumber: z.string().optional(),
+  platform: z.string().optional(),
+  country: z.string().optional(),
   value: z.union([z.string(), z.number(), z.boolean()]),
   type: z.enum(["string", "integer", "float", "boolean"]),
 });
@@ -108,6 +112,36 @@ const CreateModal = ({ isOpen, onClose, onCreate }: CreateModalProps) => {
               <option value="float">Float</option>
               <option value="boolean">Boolean</option>
             </Select>
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Version</FormLabel>
+            <Textarea
+              value={form.version}
+              onChange={(e) => setForm({ ...form, version: e.target.value })}
+            />
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Build Number</FormLabel>
+            <Textarea
+              value={form.buildNumber}
+              onChange={(e) =>
+                setForm({ ...form, buildNumber: e.target.value })
+              }
+            />
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Platform</FormLabel>
+            <Textarea
+              value={form.platform}
+              onChange={(e) => setForm({ ...form, platform: e.target.value })}
+            />
+          </FormControl>
+          <FormControl mb={4}>
+            <FormLabel>Country</FormLabel>
+            <Textarea
+              value={form.country}
+              onChange={(e) => setForm({ ...form, country: e.target.value })}
+            />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Value</FormLabel>

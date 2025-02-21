@@ -48,7 +48,16 @@ const checkOverlap = async (newConfig: any) => {
 app.get("/api/configs", cors(corsOptions), async (req, res): Promise<any> => {
   const { sortBy = "name", order = "asc" } = req.query;
   const sortOrder = order === "desc" ? -1 : 1;
-  const validSortFields = ["name", "description", "type", "updatedAt"];
+  const validSortFields = [
+    "name",
+    "description",
+    "type",
+    "platform",
+    "version",
+    "buildNumber",
+    "country",
+    "updatedAt",
+  ];
   const sortField = validSortFields.includes(sortBy as string)
     ? sortBy
     : "name";
