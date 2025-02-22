@@ -17,17 +17,33 @@ import { useState } from "react";
 import { z } from "zod";
 import { Config } from "../../../interfaces/IConfig";
 
+const versionRegex = /^\d+\.\d+\.\d+$/;
 // Zod schema matching backend Config
 const configSchema = z.object({
-  _id: z.string(), // Required for updates
+  _id: z.string(),
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  value: z.union([z.string(), z.number(), z.boolean()]),
-  type: z.enum(["string", "integer", "float", "boolean"]),
-  version: z.string().optional(),
-  buildNumber: z.string().optional(),
+  version: z
+    .string()
+    .regex(versionRegex, "Version must be in format X.Y.Z (e.g., 1.2.3)")
+    .optional()
+    .refine((val) => {
+      if (!val) return true;
+      const parts = val.split(".").map(Number);
+      return parts.length === 3 && parts.every((n) => !isNaN(n) && n >= 0);
+    }, "Invalid version number"),
+  buildNumber: z
+    .number()
+    .transform((val) => (val ? val : undefined))
+    .refine(
+      (val) => val === undefined || (Number.isInteger(val) && val >= 0),
+      "Build number must be a positive integer"
+    )
+    .optional(),
   platform: z.string().optional(),
   country: z.string().optional(),
+  value: z.union([z.string(), z.number(), z.boolean()]),
+  type: z.enum(["string", "integer", "float", "boolean"]),
 });
 
 type ConfigForm = z.infer<typeof configSchema>;
@@ -47,7 +63,7 @@ const EditModal = ({ isOpen, onClose, config, onUpdate }: EditModalProps) => {
     value: config.value,
     type: config.type,
     version: config.version || "",
-    buildNumber: config.buildNumber || "",
+    buildNumber: parseInt(config.buildNumber) || 0,
     platform: config.platform || "",
     country: config.country || "",
   });
@@ -121,29 +137,55 @@ const EditModal = ({ isOpen, onClose, config, onUpdate }: EditModalProps) => {
               value={form.version}
               onChange={(e) => setForm({ ...form, version: e.target.value })}
             />
+            {errors.version && (
+              <Text color="red.500">{errors.version._errors[0]}</Text>
+            )}
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Build Number</FormLabel>
-            <Textarea
-              value={form.buildNumber}
-              onChange={(e) =>
-                setForm({ ...form, buildNumber: e.target.value })
-              }
+            <Input
+              type="number"
+              value={form.buildNumber ?? ""} // Use nullish coalescing to handle undefined
+              onChange={(e) => {
+                const value = e.target.value;
+                setForm({
+                  ...form,
+                  buildNumber: value ? Number(value) : undefined,
+                });
+              }}
+              placeholder="Enter build number (e.g., 100)"
             />
+            {errors.buildNumber && (
+              <Text color="red.500">{errors.buildNumber._errors[0]}</Text>
+            )}
           </FormControl>
+
           <FormControl mb={4}>
             <FormLabel>Platform</FormLabel>
-            <Textarea
-              value={form.platform}
-              onChange={(e) => setForm({ ...form, platform: e.target.value })}
-            />
+            <Select
+              value={form.platform || "All"}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  platform: e.target.value,
+                })
+              }
+            >
+              <option value="All">All</option>
+              <option value="iOS">iOS</option>
+              <option value="Android">Android</option>
+            </Select>
           </FormControl>
+
           <FormControl mb={4}>
             <FormLabel>Country</FormLabel>
             <Textarea
               value={form.country}
               onChange={(e) => setForm({ ...form, country: e.target.value })}
             />
+            {errors.country && (
+              <Text color="red.500">{errors.country._errors[0]}</Text>
+            )}
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Value</FormLabel>
