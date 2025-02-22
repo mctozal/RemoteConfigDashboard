@@ -59,8 +59,9 @@ function ConfigurationMain() {
     const newConfig = {
       ...config,
       name: `${config.name}_copy`,
-      id: undefined,
+      _id: undefined,
     };
+    console.log("duplicate", newConfig);
     createConfig(newConfig);
   };
 
@@ -87,10 +88,11 @@ function ConfigurationMain() {
     });
   };
 
-  const handleDelete = (configId: string) => {
-    deleteConfig(configId, {
-      onSuccess: () => deleteModal.onClose(),
-    });
+  const handleDelete = (configId?: string) => {
+    if (configId)
+      deleteConfig(configId, {
+        onSuccess: () => deleteModal.onClose(),
+      });
   };
 
   if (isLoading) return <Spinner />;

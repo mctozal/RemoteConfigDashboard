@@ -1,5 +1,5 @@
 export interface Config {
-  _id: string;
+  _id?: string;
   name: string;
   description: string;
   value: string | number | boolean;
