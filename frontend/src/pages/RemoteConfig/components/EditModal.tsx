@@ -57,7 +57,7 @@ interface EditModalProps {
 
 const EditModal = ({ isOpen, onClose, config, onUpdate }: EditModalProps) => {
   const [form, setForm] = useState<ConfigForm>({
-    _id: config._id,
+    _id: config._id ?? "",
     name: config.name,
     description: config.description || "",
     value: config.value,

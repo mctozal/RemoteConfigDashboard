@@ -24,7 +24,7 @@ const DeleteModal = ({
   onDelete,
 }: DeleteModalProps) => {
   const handleDelete = () => {
-    onDelete(config._id); // Use parent's mutation hook
+    onDelete(config._id!); // Use parent's mutation hook
   };
 
   return (
