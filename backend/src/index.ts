@@ -92,7 +92,7 @@ app.put("/api/configs/:id", async (req, res): Promise<any> => {
     if (!original || original.status !== "active")
       return res.status(404).json({ error: "Config not found" });
 
-    if (await checkOverlap({ ...req.body, name: original.name })) {
+    if (await checkOverlap(req.body)) {
       return res.status(400).json({
         error: "Updated config overlaps with an existing active config",
       });
@@ -107,6 +107,7 @@ app.put("/api/configs/:id", async (req, res): Promise<any> => {
       name: original.name,
       supersededBy: null,
       updatedAt: new Date(),
+      _id: null,
     });
     await newConfig.save();
 
