@@ -18,11 +18,24 @@ const ws_1 = require("ws");
 const http_1 = __importDefault(require("http"));
 const Config_1 = __importDefault(require("./model/Config"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const cors_1 = __importDefault(require("cors"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const server = http_1.default.createServer(app);
-const wss = new ws_1.WebSocketServer({ server });
+const corsOptions = {
+    origin: "http://localhost:5173",
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
+    allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Headers",
+    ],
+    credentials: true,
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
+const server = http_1.default.createServer(app);
+const wss = new ws_1.WebSocketServer({ server, perMessageDeflate: false });
 // Broadcast to all clients
 const broadcast = (data) => {
     wss.clients.forEach((client) => {
@@ -32,24 +45,25 @@ const broadcast = (data) => {
 };
 // Check for overlapping configs
 const checkOverlap = (newConfig) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, filters } = newConfig;
+    const { name } = newConfig;
     const query = { name, status: "active" };
-    if (filters.version)
-        query["filters.version"] = filters.version;
-    if (filters.buildNumber)
-        query["filters.buildNumber"] = filters.buildNumber;
-    if (filters.platform)
-        query["filters.platform"] = filters.platform;
-    if (filters.country)
-        query["filters.country"] = filters.country;
     const existing = yield Config_1.default.findOne(query);
     return !!existing;
 });
 // Get all active configs
-app.get("/api/configs", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/api/configs", (0, cors_1.default)(corsOptions), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { sortBy = "name", order = "asc" } = req.query;
     const sortOrder = order === "desc" ? -1 : 1;
-    const validSortFields = ["name", "description", "type", "updatedAt"];
+    const validSortFields = [
+        "name",
+        "description",
+        "type",
+        "platform",
+        "version",
+        "buildNumber",
+        "country",
+        "updatedAt",
+    ];
     const sortField = validSortFields.includes(sortBy)
         ? sortBy
         : "name";

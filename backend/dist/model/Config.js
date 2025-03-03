@@ -34,41 +34,6 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const FilterSchema = new mongoose_1.Schema({
-    version: {
-        value: String,
-        operation: {
-            type: String,
-            enum: [
-                "Equal",
-                "NotEqual",
-                "GreaterThan",
-                "LessThan",
-                "GreaterThanOrEqual",
-                "LessThanOrEqual",
-            ],
-        },
-    },
-    buildNumber: {
-        value: Number,
-        operation: {
-            type: String,
-            enum: [
-                "Equal",
-                "NotEqual",
-                "GreaterThan",
-                "LessThan",
-                "GreaterThanOrEqual",
-                "LessThanOrEqual",
-            ],
-        },
-    },
-    platform: { type: String, enum: ["All", "ios", "Android"], default: "All" },
-    country: {
-        operation: { type: String, enum: ["Include", "Exclude"] },
-        values: [String],
-    },
-});
 const ConfigSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
     description: { type: String },
@@ -78,7 +43,10 @@ const ConfigSchema = new mongoose_1.Schema({
         enum: ["string", "integer", "float", "boolean"],
         required: true,
     },
-    filters: FilterSchema,
+    version: { type: String },
+    platform: { type: String },
+    buildNumber: { type: String },
+    country: { type: String },
     status: {
         type: String,
         enum: ["active", "deleted", "superseded"],
@@ -86,6 +54,6 @@ const ConfigSchema = new mongoose_1.Schema({
     },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date },
-    supersededBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Config" }, // Reference to the new version
+    supersededBy: { type: mongoose_1.Schema.Types.ObjectId, ref: "Config" },
 });
 exports.default = mongoose_1.default.model("Config", ConfigSchema);
